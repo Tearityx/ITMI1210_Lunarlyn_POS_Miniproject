@@ -4,7 +4,7 @@ const session = require('express-session')
 const path = require('path')
 const multer = require('multer')
 const Settings = require('./models/Settings')
-
+const fs = require('fs');
 const app = express()
 const PORT = process.env.PORT || 8080
 
@@ -32,9 +32,22 @@ app.use(async (req, res, next) => {
   res.locals.user = req.session.user || null
   try {
     const logoSetting = await Settings.findOne({ key: 'shopLogo' })
-    res.locals.shopLogo = logoSetting ? logoSetting.value : ''
+    let logoPath = logoSetting ? logoSetting.value : '/uploads/logo/logo.png'
+    
+    const fullPath = path.join(__dirname, 'public', logoPath)
+    if (!fs.existsSync(fullPath)) {
+      const logoDir = path.join(__dirname, 'public/uploads/logo')
+      if (fs.existsSync(logoDir)) {
+        const files = fs.readdirSync(logoDir)
+        const logoFile = files.find(f => f.toLowerCase().startsWith('logo'))
+        if (logoFile) {
+          logoPath = '/uploads/logo/' + logoFile
+        }
+      }
+    }
+    res.locals.shopLogo = logoPath
   } catch (e) {
-    res.locals.shopLogo = ''
+    res.locals.shopLogo = '/uploads/logo/logo.png'
   }
   next()
 })
