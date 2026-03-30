@@ -6,8 +6,7 @@ const Settings = require('../models/Settings')
 // หน้า login
 router.get('/login', async (req, res) => {
   if (req.session.user) return res.redirect('/')
-  const logoSetting = await Settings.findOne({ key: 'shopLogo' }).catch(() => null)
-  res.render('auth/login', { error: null, success: null, shopLogo: logoSetting ? logoSetting.value : '' })
+  res.render('auth/login', { error: null, success: null,})
 })
 
 // ส่งข้อมูล login
@@ -15,12 +14,10 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body
   try {
     const user = await User.findOne({ username })
-    const logoSetting = await Settings.findOne({ key: 'shopLogo' }).catch(() => null)
-    const shopLogo = logoSetting ? logoSetting.value : ''
-    if (!user) return res.render('auth/login', { error: 'ไม่พบชื่อผู้ใช้นี้', success: null, shopLogo })
+    if (!user) return res.render('auth/login', { error: 'ไม่พบชื่อผู้ใช้นี้', success: null,})
 
     const match = await user.comparePassword(password)
-    if (!match) return res.render('auth/login', { error: 'รหัสผ่านไม่ถูกต้อง', success: null, shopLogo })
+    if (!match) return res.render('auth/login', { error: 'รหัสผ่านไม่ถูกต้อง', success: null,})
 
     req.session.user = {
       _id: user._id,
@@ -33,7 +30,7 @@ router.post('/login', async (req, res) => {
     if (user.role === 'customer') return res.redirect('/shop')
     res.redirect('/dashboard')
   } catch (err) {
-    res.render('auth/login', { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่', success: null, shopLogo: '' })
+    res.render('auth/login', { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่', success: null, })
   }
 })
 
@@ -55,8 +52,7 @@ router.post('/register', async (req, res) => {
 
     const user = new User({ username, password, displayName, email, phone, role: 'customer' })
     await user.save()
-    const logoSetting2 = await Settings.findOne({ key: 'shopLogo' }).catch(() => null)
-    res.render('auth/login', { error: null, success: 'สมัครสำเร็จ! กรุณาเข้าสู่ระบบ', shopLogo: logoSetting2 ? logoSetting2.value : '' })
+    res.render('auth/login', { error: null, success: 'สมัครสำเร็จ! กรุณาเข้าสู่ระบบ', })
   } catch (err) {
     res.render('auth/register', { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' })
   }
