@@ -1,6 +1,6 @@
 # Lunarlyn IT POS Miniproject
 
-มินิโปรเจ็คส่งอาจารย์เป็นระบบขายหน้าร้าน และ ขายออนไลน์ สำหรับรายวิชา ITMI1210 Designing Web APIs with Node.js
+Miniproject ส่งอาจารย์ ระบบขายหน้าร้าน และ ขายออนไลน์ สำหรับรายวิชา ITMI1210 Designing Web APIs with Node.js
 
 ## ✨ Feature
 - [x] ระบบ Authentication
@@ -52,7 +52,7 @@ npm start
 
 http://localhost:8080/
 
-## วิธีการเข้าใช้งาน
+## 💡 วิธีการเข้าใช้งาน
 
 ### Copy Username / Password จาก Terminal ที่ได้มาจากตอน Seed ข้อมูลลง Database มาใช้งานได้เลย
  **ถ้าหาไม่เจอให้ใช้ตามนี้**
