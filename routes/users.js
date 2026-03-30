@@ -6,6 +6,12 @@ const fs = require('fs')
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 
+// สร้างโฟลเดอร์ถ้ายังไม่มี
+const uploadDir = path.join(__dirname, '../public/uploads/profiles');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // ตั้งค่า multer สำหรับรูปโปรไฟล์
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
