@@ -1,0 +1,185 @@
+<%- include('../partials/head', { title: 'POS ขายสินค้า' }) %>
+<%- include('../partials/sidebar', { currentPage: 'pos' }) %>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="page-title">🖥️ POS <span>ขายสินค้า</span></div>
+    <div class="text-muted" style="font-size:13px;">พนักงาน: <%= user ? (user.displayName || user.username) : '' %></div>
+  </div>
+
+  <% if (success) { %>
+    <div class="alert alert-success">✅ <%= success %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-error">⚠️ <%= error %></div>
+  <% } %>
+
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;">
+    <!-- ฝั่งซ้าย: รายการสินค้า -->
+    <div>
+      <!-- ค้นหา -->
+      <form method="GET" action="/pos" style="margin-bottom:16px;">
+        <div class="search-bar">
+          <input type="text" name="search" class="form-control" placeholder="🔍 ค้นหาสินค้า..." value="<%= search %>">
+          <select name="category" class="form-control" style="max-width:160px;">
+            <option value="all">ทุกหมวดหมู่</option>
+            <% categories.forEach(c => { %>
+              <option value="<%= c %>" <%= selectedCategory === c ? 'selected' : '' %>><%= c %></option>
+            <% }) %>
+          </select>
+          <button type="submit" class="btn btn-secondary">ค้นหา</button>
+          <% if (search || selectedCategory !== 'all') { %>
+            <a href="/pos" class="btn btn-outline">ล้าง</a>
+          <% } %>
+        </div>
+      </form>
+
+      <!-- กริดสินค้า -->
+      <div class="product-grid" style="grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+        <% if (products.length === 0) { %>
+          <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);">
+            <div style="font-size:40px;margin-bottom:8px;">📦</div>
+            ไม่พบสินค้า
+          </div>
+        <% } %>
+        <% products.forEach(p => { %>
+          <div class="product-card" style="cursor:pointer;transition:transform .15s;" onclick="addToCart('<%= p._id %>', '<%= p.name.replace(/'/g, '').replace(/"/g, '') %>', <%= p.price %>, '<%= p.image %>', <%= p.stock %>)">
+            <div class="product-img" style="height:100px;">
+              <% if (p.image) { %>
+                <img src="<%= p.image %>" alt="<%= p.name %>">
+              <% } else { %>
+                <span style="font-size:32px;">📦</span>
+              <% } %>
+            </div>
+            <div class="product-info" style="padding:8px;">
+              <div class="product-name" style="font-size:13px;"><%= p.name %></div>
+              <div class="product-price" style="font-size:14px;">฿<%= p.price.toLocaleString() %></div>
+              <div class="product-stock" style="font-size:11px;">คงเหลือ <%= p.stock %> ชิ้น</div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- ฝั่งขวา: ตะกร้า POS -->
+    <div class="card" style="position:sticky;top:20px;">
+      <div class="card-body" style="padding:16px;">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text);">🧾 รายการขาย</h3>
+
+        <div id="posCart" style="min-height:120px;max-height:340px;overflow-y:auto;margin-bottom:12px;">
+          <div id="emptyMsg" style="text-align:center;padding:30px;color:var(--text-light);font-size:13px;">ยังไม่มีสินค้า<br>กดเลือกสินค้าจากด้านซ้าย</div>
+        </div>
+
+        <div style="border-top:2px solid var(--border);padding-top:12px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:14px;font-weight:600;">รวมทั้งหมด</span>
+            <span class="price" style="font-size:22px;font-weight:700;" id="posTotal">฿0</span>
+          </div>
+        </div>
+
+        <!-- ฟอร์มบันทึกการขาย -->
+        <form id="posForm" method="POST" action="/pos/sale">
+          <input type="hidden" name="items" id="posItems">
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label" style="font-size:12px;">ชื่อลูกค้า (ถ้ามี)</label>
+            <input type="text" name="customerName" class="form-control" placeholder="ลูกค้าทั่วไป">
+          </div>
+          <div class="form-group" style="margin-bottom:10px;">
+            <label class="form-label" style="font-size:12px;">ช่องทางชำระเงิน</label>
+            <select name="paymentMethod" class="form-control">
+              <option>เงินสด</option>
+              <option>โอนเงิน</option>
+              <option>บัตรเครดิต/เดบิต</option>
+              <option>QR Code</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label" style="font-size:12px;">หมายเหตุ</label>
+            <input type="text" name="note" class="form-control" placeholder="หมายเหตุเพิ่มเติม">
+          </div>
+          <button type="button" onclick="clearCart()" class="btn btn-outline w-100" style="justify-content:center;margin-bottom:8px;">🗑️ ล้างรายการ</button>
+          <button type="button" onclick="submitSale()" class="btn btn-primary w-100 btn-lg" style="justify-content:center;" id="saleBtn" disabled>
+            💳 บันทึกการขาย
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let cart = []
+
+function addToCart(id, name, price, image, stock) {
+  const existing = cart.find(i => i.productId === id)
+  if (existing) {
+    if (existing.quantity >= stock) { alert('สินค้าในสต็อกมีไม่พอ'); return }
+    existing.quantity++
+  } else {
+    cart.push({ productId: id, name, price, quantity: 1, image, stock })
+  }
+  renderCart()
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.productId !== id)
+  renderCart()
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i.productId === id)
+  if (!item) return
+  item.quantity += delta
+  if (item.quantity <= 0) { removeFromCart(id); return }
+  if (item.quantity > item.stock) { item.quantity = item.stock; alert('สินค้าในสต็อกมีไม่พอ') }
+  renderCart()
+}
+
+function clearCart() {
+  cart = []
+  renderCart()
+}
+
+function renderCart() {
+  const container = document.getElementById('posCart')
+  const emptyMsg = document.getElementById('emptyMsg')
+  const totalEl = document.getElementById('posTotal')
+  const saleBtn = document.getElementById('saleBtn')
+
+  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0)
+  totalEl.textContent = '฿' + total.toLocaleString()
+
+  if (cart.length === 0) {
+    container.innerHTML = '<div id="emptyMsg" style="text-align:center;padding:30px;color:var(--text-light);font-size:13px;">ยังไม่มีสินค้า<br>กดเลือกสินค้าจากด้านซ้าย</div>'
+    saleBtn.disabled = true
+    return
+  }
+
+  saleBtn.disabled = false
+  container.innerHTML = cart.map(item => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;">${item.name}</div>
+        <div style="font-size:12px;color:var(--text-light);">฿${item.price.toLocaleString()} × ${item.quantity}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button onclick="changeQty('${item.productId}', -1)" class="qty-btn">-</button>
+        <span class="qty-display">${item.quantity}</span>
+        <button onclick="changeQty('${item.productId}', 1)" class="qty-btn">+</button>
+      </div>
+      <div style="text-align:right;min-width:64px;">
+        <div class="price fw-700" style="font-size:13px;">฿${(item.price * item.quantity).toLocaleString()}</div>
+        <button onclick="removeFromCart('${item.productId}')" style="background:none;border:none;color:#e04060;cursor:pointer;font-size:16px;">🗑️</button>
+      </div>
+    </div>
+  `).join('')
+}
+
+function submitSale() {
+  if (cart.length === 0) return
+  document.getElementById('posItems').value = JSON.stringify(cart)
+  document.getElementById('posForm').submit()
+}
+</script>
+
+<%- include('../partials/foot') %>

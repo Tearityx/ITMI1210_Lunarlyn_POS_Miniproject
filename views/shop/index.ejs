@@ -1,0 +1,222 @@
+<%- include('../partials/head', { title: 'ร้าน Lunarlyn IT' }) %>
+
+<div id="overlay" class="overlay" onclick="closeCart()"></div>
+
+<!-- Shop Header -->
+<div class="shop-header">
+  <div class="d-flex align-center gap-3">
+    <% if (user && user.profileImage) { %>
+      <img src="<%= user.profileImage %>" class="avatar" style="width:36px;height:36px;" alt="profile">
+    <% } else { %>
+      <div class="avatar-placeholder" style="width:36px;height:36px;font-size:14px;">
+        <%= user ? user.displayName.charAt(0).toUpperCase() : '?' %>
+      </div>
+    <% } %>
+    <div>
+      <% if (shopLogo) { %><img src="<%= shopLogo %>" style="height:36px;border-radius:6px;" alt="logo"><% } else { %><h2>💻 Lunarlyn IT</h2><% } %>
+      <div style="font-size:11px;color:var(--text);">สวัสดี, <%= user ? (user.displayName || user.username) : '' %></div>
+    </div>
+  </div>
+  <div class="d-flex align-center gap-3">
+    <a href="/users/profile" class="btn btn-outline btn-sm">✏️ โปรไฟล์</a>
+    <button class="cart-btn" onclick="toggleCart()">
+      🛒
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <a href="/logout" class="btn btn-outline btn-sm">🚪 ออก</a>
+  </div>
+</div>
+
+<div style="padding: 20px 24px;">
+  <!-- ค้นหาและกรอง -->
+  <form method="GET" action="/shop">
+    <div class="search-bar">
+      <input type="text" name="search" class="form-control" placeholder="🔍 ค้นหาสินค้า..." value="<%= search %>">
+      <select name="category" class="form-control" style="max-width: 180px;">
+        <option value="all">ทุกหมวดหมู่</option>
+        <% categories.forEach(c => { %>
+          <option value="<%= c %>" <%= selectedCategory === c ? 'selected' : '' %>><%= c %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-secondary">ค้นหา</button>
+      <% if (search || selectedCategory !== 'all') { %>
+        <a href="/shop" class="btn btn-outline">ล้าง</a>
+      <% } %>
+    </div>
+  </form>
+
+  <% if (error) { %>
+    <div class="alert alert-error">⚠️ <%= error %></div>
+  <% } %>
+
+  <div class="result-count"><%= products.length %> สินค้า</div>
+
+  <!-- สินค้า -->
+  <div class="product-grid">
+    <% if (products.length === 0) { %>
+      <div style="grid-column: 1/-1; text-align:center; padding: 60px 20px; color: var(--text-light);">
+        <div style="font-size: 48px; margin-bottom: 12px;">📦</div>
+        <div>ไม่พบสินค้าที่ต้องการ</div>
+      </div>
+    <% } %>
+    <% products.forEach(p => { %>
+      <div class="product-card" onclick="addToCart('<%= p._id %>', '<%= p.name.replace(/'/g, '') %>', <%= p.price %>, '<%= p.image %>')">
+        <div class="product-img">
+          <% if (p.image) { %>
+            <img src="<%= p.image %>" alt="<%= p.name %>">
+          <% } else { %>
+            <span>📦</span>
+          <% } %>
+        </div>
+        <div class="product-info">
+          <div class="product-category"><%= p.category %></div>
+          <div class="product-name"><%= p.name %></div>
+          <div class="product-price">฿<%= p.price.toLocaleString() %></div>
+          <div class="product-stock">คงเหลือ <%= p.stock %> ชิ้น</div>
+          <button class="btn btn-primary w-100" style="margin-top:10px;justify-content:center;" onclick="event.stopPropagation();addToCart('<%= p._id %>', '<%= p.name.replace(/'/g, '') %>', <%= p.price %>, '<%= p.image %>')">
+            🛒 หยิบลงตะกร้า
+          </button>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</div>
+
+<!-- ตะกร้าสินค้า -->
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <h3 style="font-size:16px;font-weight:700;color:var(--text);">📋 รายการสั่งซื้อ</h3>
+    <button onclick="closeCart()" style="background:none;border:none;font-size:20px;cursor:pointer;">✕</button>
+  </div>
+
+  <div class="cart-items" id="cartItems">
+    <div style="text-align:center;padding:40px;color:var(--text-light);">ยังไม่มีสินค้าในตะกร้า</div>
+  </div>
+
+  <div class="cart-footer">
+    <div class="cart-total">
+      รวม: <span class="price" id="cartTotal">฿0</span>
+    </div>
+
+    <!-- ฟอร์มชำระเงิน -->
+    <form id="checkoutForm" method="POST" action="/orders/checkout" style="display:none;">
+      <input type="hidden" name="items" id="checkoutItems">
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">ช่องทางชำระเงิน</label>
+        <select name="paymentMethod" class="form-control">
+          <option>เงินสด</option>
+          <option>โอนเงิน</option>
+          <option>บัตรเครดิต/เดบิต</option>
+          <option>QR Code</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:12px;">หมายเหตุ</label>
+        <input type="text" name="note" class="form-control" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)">
+      </div>
+      <button type="submit" class="btn btn-primary w-100 btn-lg" style="justify-content:center;">
+        📋 ยืนยันคำสั่งซื้อ
+      </button>
+    </form>
+
+    <div id="emptyCartMsg" style="text-align:center;color:var(--text-light);font-size:13px;">
+      เพิ่มสินค้าเพื่อทำรายการสั่งซื้อ
+    </div>
+  </div>
+</div>
+
+<script>
+let cart = []
+
+function toggleCart() {
+  const sidebar = document.getElementById('cartSidebar')
+  const overlay = document.getElementById('overlay')
+  sidebar.classList.toggle('open')
+  overlay.classList.toggle('show')
+}
+
+function closeCart() {
+  document.getElementById('cartSidebar').classList.remove('open')
+  document.getElementById('overlay').classList.remove('show')
+}
+
+function addToCart(id, name, price, image) {
+  const existing = cart.find(i => i.productId === id)
+  if (existing) {
+    existing.quantity++
+  } else {
+    cart.push({ productId: id, name, price, quantity: 1, image })
+  }
+  updateCartUI()
+  document.getElementById('cartSidebar').classList.add('open')
+  document.getElementById('overlay').classList.add('show')
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.productId !== id)
+  updateCartUI()
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i.productId === id)
+  if (!item) return
+  item.quantity += delta
+  if (item.quantity <= 0) {
+    removeFromCart(id)
+    return
+  }
+  updateCartUI()
+}
+
+function updateCartUI() {
+  const cartItems = document.getElementById('cartItems')
+  const cartCount = document.getElementById('cartCount')
+  const cartTotal = document.getElementById('cartTotal')
+  const checkoutForm = document.getElementById('checkoutForm')
+  const emptyMsg = document.getElementById('emptyCartMsg')
+  const checkoutItems = document.getElementById('checkoutItems')
+
+  const totalCount = cart.reduce((s, i) => s + i.quantity, 0)
+  const total = cart.reduce((s, i) => s + i.price * i.quantity, 0)
+
+  cartCount.textContent = totalCount
+
+  if (cart.length === 0) {
+    cartItems.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-light);">ยังไม่มีสินค้าในตะกร้า</div>'
+    checkoutForm.style.display = 'none'
+    emptyMsg.style.display = 'block'
+  } else {
+    checkoutForm.style.display = 'block'
+    emptyMsg.style.display = 'none'
+    checkoutItems.value = JSON.stringify(cart)
+
+    cartItems.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-img">
+          ${item.image ? `<img src="${item.image}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">` : '📦'}
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">${item.name}</div>
+          <div style="font-size:12px;color:var(--text-light);">฿${item.price.toLocaleString()}</div>
+          <div class="qty-control" style="margin-top:6px;">
+            <button class="qty-btn" onclick="changeQty('${item.productId}', -1)">-</button>
+            <span class="qty-display">${item.quantity}</span>
+            <button class="qty-btn" onclick="changeQty('${item.productId}', 1)">+</button>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="price fw-700" style="font-size:14px;">฿${(item.price * item.quantity).toLocaleString()}</div>
+          <button onclick="removeFromCart('${item.productId}')"
+            style="background:none;border:none;color:#e04060;cursor:pointer;font-size:18px;margin-top:4px;">🗑️</button>
+        </div>
+      </div>
+    `).join('')
+  }
+
+  cartTotal.textContent = '฿' + total.toLocaleString()
+}
+
+updateCartUI()
+</script>
+
+<%- include('../partials/foot') %>

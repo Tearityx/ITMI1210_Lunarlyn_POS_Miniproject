@@ -1,0 +1,74 @@
+<%- include('../partials/head', { title: 'จัดการพนักงาน' }) %>
+<%- include('../partials/sidebar', { currentPage: 'employees' }) %>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="page-title">👤 จัดการพนักงาน</div>
+    <a href="/users/add" class="btn btn-primary">+ เพิ่มพนักงาน</a>
+  </div>
+
+  <% if (success) { %>
+    <div class="alert alert-success">✅ <%= success %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-error">⚠️ <%= error %></div>
+  <% } %>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>พนักงาน</th>
+          <th>ชื่อผู้ใช้</th>
+          <th>อีเมล</th>
+          <th>เบอร์โทร</th>
+          <th>ตำแหน่ง</th>
+          <th>วันที่เพิ่ม</th>
+          <th>จัดการ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (employees.length === 0) { %>
+          <tr><td colspan="7" class="no-records">ยังไม่มีพนักงาน</td></tr>
+        <% } %>
+        <% employees.forEach(emp => { %>
+          <tr>
+            <td>
+              <div class="d-flex align-center gap-2">
+                <% if (emp.profileImage) { %>
+                  <img src="<%= emp.profileImage %>" class="avatar" style="width:36px;height:36px;">
+                <% } else { %>
+                  <div class="avatar-placeholder" style="width:36px;height:36px;font-size:13px;">
+                    <%= emp.displayName ? emp.displayName.charAt(0).toUpperCase() : emp.username.charAt(0).toUpperCase() %>
+                  </div>
+                <% } %>
+                <strong><%= emp.displayName || emp.username %></strong>
+              </div>
+            </td>
+            <td style="color:var(--text-light);font-size:13px;">@<%= emp.username %></td>
+            <td style="font-size:13px;"><%= emp.email || '-' %></td>
+            <td style="font-size:13px;"><%= emp.phone || '-' %></td>
+            <td>
+              <span class="role-badge <%= emp.role %>">
+                <%= emp.role === 'manager' ? 'ผู้จัดการ' : 'พนักงาน' %>
+              </span>
+            </td>
+            <td style="font-size:12px;color:var(--text-light);"><%= emp.createdAt.toLocaleDateString('th-TH') %></td>
+            <td>
+              <div class="d-flex gap-2">
+                <a href="/users/edit/<%= emp._id %>" class="btn btn-outline btn-sm">✏️ แก้ไข</a>
+                <% if (user._id.toString() !== emp._id.toString()) { %>
+                  <form method="POST" action="/users/delete/<%= emp._id %>" onsubmit="return confirm('ลบพนักงานนี้?')">
+                    <button type="submit" class="btn btn-danger btn-sm">🗑️ ลบ</button>
+                  </form>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

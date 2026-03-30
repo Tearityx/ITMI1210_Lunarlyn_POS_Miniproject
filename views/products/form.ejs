@@ -1,0 +1,82 @@
+<%- include('../partials/head', { title: action === 'add' ? 'เพิ่มสินค้า' : 'แก้ไขสินค้า' }) %>
+<%- include('../partials/sidebar', { currentPage: 'products' }) %>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="page-title">
+      <%= action === 'add' ? '➕ เพิ่มสินค้าใหม่' : '✏️ แก้ไขสินค้า' %>
+    </div>
+    <a href="/products" class="btn btn-outline">← กลับ</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="alert alert-error">⚠️ <%= error %></div>
+  <% } %>
+
+  <div class="card" style="max-width: 640px;">
+    <div class="card-body">
+      <form method="POST" action="/products/<%= action === 'add' ? 'add' : 'edit/' + product._id %>" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">ชื่อสินค้า *</label>
+          <input type="text" name="name" class="form-control" value="<%= product ? product.name : '' %>" required placeholder="เช่น MSI GeForce RTX 4070">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">รายละเอียด</label>
+          <textarea name="description" class="form-control" placeholder="รายละเอียดสินค้า..."><%= product ? product.description : '' %></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">ราคา (บาท) *</label>
+            <input type="number" name="price" class="form-control" value="<%= product ? product.price : '' %>" required min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">จำนวนสต็อก *</label>
+            <input type="number" name="stock" class="form-control" value="<%= product ? product.stock : '' %>" required min="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">หมวดหมู่</label>
+          <select name="category" class="form-control">
+            <% const cats = ['คอมพิวเตอร์', 'การ์ดจอ', 'โปรเซสเซอร์', 'แรม', 'SSD/HDD', 'เมาส์', 'คีย์บอร์ด', 'จอมอนิเตอร์', 'หูฟัง', 'เน็ตเวิร์ก', 'อุปกรณ์เสริม', 'อื่นๆ'] %>
+            <% cats.forEach(c => { %>
+              <option value="<%= c %>" <%= product && product.category === c ? 'selected' : '' %>><%= c %></option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">รูปสินค้า</label>
+          <% if (product && product.image) { %>
+            <div style="margin-bottom: 8px;">
+              <img src="<%= product.image %>" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:2px solid var(--border);">
+            </div>
+          <% } %>
+          <input type="file" name="image" class="form-control" accept="image/*">
+          <div style="font-size:11px;color:var(--text-light);margin-top:4px;">ขนาดไม่เกิน 5MB (jpg, png)</div>
+        </div>
+
+        <% if (action === 'edit') { %>
+          <div class="form-group">
+            <label class="form-label">สถานะ</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" name="isActive" <%= product && product.isActive ? 'checked' : '' %>>
+              <span>เปิดขาย</span>
+            </label>
+          </div>
+        <% } %>
+
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn btn-primary">
+            💾 <%= action === 'add' ? 'เพิ่มสินค้า' : 'บันทึกการแก้ไข' %>
+          </button>
+          <a href="/products" class="btn btn-outline">ยกเลิก</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,80 @@
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <% if (shopLogo) { %>
+      <img src="<%= shopLogo %>" alt="Logo" style="width:48px;height:48px;object-fit:cover;border-radius:10px;margin-bottom:6px;">
+    <% } else { %>
+      <div class="logo-icon">💻</div>
+    <% } %>
+    <h2>Lunarlyn IT</h2>
+    <p>ร้านจำหน่ายอุปกรณ์ IT</p>
+  </div>
+
+  <div class="sidebar-user">
+    <% if (user && user.profileImage) { %>
+      <img src="<%= user.profileImage %>" alt="profile" class="avatar" style="width:38px;height:38px;">
+    <% } else { %>
+      <div class="avatar-placeholder">
+        <%= user ? user.displayName.charAt(0).toUpperCase() : '?' %>
+      </div>
+    <% } %>
+    <div class="sidebar-user-info">
+      <div class="name"><%= user ? (user.displayName || user.username) : '' %></div>
+      <span class="role-badge <%= user ? user.role : '' %>">
+        <%= user && user.role === 'manager' ? 'ผู้จัดการ' : user && user.role === 'employee' ? 'พนักงาน' : 'ลูกค้า' %>
+      </span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <% if (user && user.role !== 'customer') { %>
+      <div class="nav-section">หลัก</div>
+      <a href="/dashboard" class="nav-item <%= currentPage === 'dashboard' ? 'active' : '' %>">
+        <span class="icon">📊</span> Dashboard
+      </a>
+
+      <div class="nav-section">ขายสินค้า</div>
+      <a href="/pos" class="nav-item <%= currentPage === 'pos' ? 'active' : '' %>">
+        <span class="icon">🖥️</span> POS ขายด่วน
+      </a>
+      <a href="/orders" class="nav-item <%= currentPage === 'orders' ? 'active' : '' %>">
+        <span class="icon">🧾</span> ออเดอร์
+      </a>
+
+      <div class="nav-section">จัดการ</div>
+      <a href="/products" class="nav-item <%= currentPage === 'products' ? 'active' : '' %>">
+        <span class="icon">📦</span> สินค้า
+      </a>
+
+      <% if (user.role === 'manager') { %>
+        <div class="nav-section">ทีม</div>
+        <a href="/users" class="nav-item <%= currentPage === 'employees' ? 'active' : '' %>">
+          <span class="icon">👤</span> พนักงาน
+        </a>
+        <a href="/users/customers" class="nav-item <%= currentPage === 'customers' ? 'active' : '' %>">
+          <span class="icon">🧑‍🤝‍🧑</span> ลูกค้า
+        </a>
+      <% } %>
+    <% } else { %>
+      <div class="nav-section">ร้านค้า</div>
+      <a href="/shop" class="nav-item <%= currentPage === 'shop' ? 'active' : '' %>">
+        <span class="icon">🛍️</span> สินค้าทั้งหมด
+      </a>
+      <a href="/orders" class="nav-item <%= currentPage === 'myorders' ? 'active' : '' %>">
+        <span class="icon">📋</span> คำสั่งซื้อของฉัน
+      </a>
+    <% } %>
+
+    <div class="nav-section">บัญชี</div>
+    <a href="/users/profile" class="nav-item <%= currentPage === 'profile' ? 'active' : '' %>">
+      <span class="icon">✏️</span> แก้ไขโปรไฟล์
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="/logout" class="btn btn-outline w-100" style="justify-content:center;">
+      🚪 ออกจากระบบ
+    </a>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>

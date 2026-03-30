@@ -1,0 +1,220 @@
+<%- include('../partials/head', { title: 'Dashboard ผู้จัดการ' }) %>
+<%- include('../partials/sidebar', { currentPage: 'dashboard' }) %>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="page-title">📊 Dashboard <span>ยอดขายรวม</span></div>
+    <div class="text-muted" style="font-size: 13px;">
+      วันนี้: <%= new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+    </div>
+  </div>
+
+  <% if (typeof success !== 'undefined' && success) { %>
+    <div class="alert alert-success">✅ <%= success %></div>
+  <% } %>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-error">⚠️ <%= error %></div>
+  <% } %>
+
+  <!-- Stats -->
+  <div class="grid-4 mb-6">
+    <div class="stat-card">
+      <div class="stat-icon pink">💰</div>
+      <div>
+        <div class="stat-value">฿<%= totalRevenue.toLocaleString() %></div>
+        <div class="stat-label">รายได้รวม</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">🧾</div>
+      <div>
+        <div class="stat-value"><%= totalOrders.toLocaleString() %></div>
+        <div class="stat-label">ออเดอร์ทั้งหมด</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">🧑‍🤝‍🧑</div>
+      <div>
+        <div class="stat-value"><%= totalCustomers.toLocaleString() %></div>
+        <div class="stat-label">ลูกค้าทั้งหมด</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">📦</div>
+      <div>
+        <div class="stat-value"><%= totalProducts.toLocaleString() %></div>
+        <div class="stat-label">สินค้าที่ขาย</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 7 วัน + สินค้าขายดี -->
+  <div class="grid-2 mb-6">
+    <div class="card">
+      <div class="card-body">
+        <h3 class="fw-700 mb-4" style="font-size:15px;">📈 ยอดขาย 7 วันล่าสุด</h3>
+        <% const maxSale = Math.max(...last7Days.map(d => d.total), 1) %>
+        <div class="chart-bar-wrap">
+          <% last7Days.forEach(day => { %>
+            <div class="chart-bar-group">
+              <div class="chart-bar" style="height: <%= Math.round((day.total / maxSale) * 100) %>px;"
+                title="฿<%= day.total.toLocaleString() %>"></div>
+              <div class="chart-label"><%= day.date %></div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <h3 class="fw-700 mb-4" style="font-size:15px;">🔥 สินค้าขายดี</h3>
+        <% if (topProducts.length === 0) { %>
+          <div class="text-muted text-center" style="padding: 20px 0; font-size:13px;">ยังไม่มีข้อมูล</div>
+        <% } %>
+        <% topProducts.forEach((p, i) => { %>
+          <div class="d-flex justify-between align-center" style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+            <div style="font-size:13px;">
+              <span style="color: var(--text-light); margin-right: 8px;">#<%= i+1 %></span>
+              <strong><%= p._id %></strong>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px; color: var(--text-light);"><%= p.totalQty %> ชิ้น</div>
+              <div class="price" style="font-size:13px;">฿<%= p.totalRevenue.toLocaleString() %></div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- ยอดขายพนักงาน -->
+  <div class="card mb-6">
+    <div class="card-body">
+      <h3 class="fw-700 mb-4" style="font-size:15px;">👥 ยอดขายแยกตามพนักงาน</h3>
+      <% if (employeeSales.length === 0) { %>
+        <div class="no-records">ยังไม่มีข้อมูลการขายจากพนักงาน</div>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>ชื่อพนักงาน</th>
+              <th>จำนวนออเดอร์</th>
+              <th class="text-right">ยอดขาย</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% employeeSales.forEach(emp => { %>
+              <tr>
+                <td><strong><%= emp.employeeName || 'ไม่ระบุ' %></strong></td>
+                <td><%= emp.orderCount %> ออเดอร์</td>
+                <td class="text-right price fw-700">฿<%= emp.totalSales.toLocaleString() %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ออเดอร์ล่าสุด -->
+  <div class="card mb-6">
+    <div class="card-body">
+      <div class="d-flex justify-between align-center mb-4">
+        <h3 class="fw-700" style="font-size:15px;">🧾 ออเดอร์ล่าสุด</h3>
+        <a href="/orders" class="btn btn-outline btn-sm">ดูทั้งหมด</a>
+      </div>
+      <% if (recentOrders.length === 0) { %>
+        <div class="no-records">ยังไม่มีออเดอร์</div>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>เลขออเดอร์</th>
+              <th>ลูกค้า</th>
+              <th>วันที่</th>
+              <th>สถานะ</th>
+              <th class="text-right">ยอด</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentOrders.forEach(order => { %>
+              <tr>
+                <td><strong><%= order.orderNumber %></strong></td>
+                <td><%= order.customerName %></td>
+                <td style="font-size:12px; color: var(--text-light);">
+                  <%= order.createdAt.toLocaleDateString('th-TH') %>
+                </td>
+                <td>
+                  <% if (order.status === 'pending') { %>
+                    <span class="badge badge-pink">⏳ รอรับ</span>
+                  <% } else if (order.status === 'accepted') { %>
+                    <span class="badge badge-blue">🔄 กำลังทำ</span>
+                  <% } else if (order.status === 'completed') { %>
+                    <span class="badge badge-green">✅ เสร็จ</span>
+                  <% } else { %>
+                    <span class="badge badge-gray">❌ ยกเลิก</span>
+                  <% } %>
+                </td>
+                <td class="text-right price fw-700">฿<%= order.totalAmount.toLocaleString() %></td>
+                <td>
+                  <a href="/orders/receipt/<%= order._id %>" class="btn btn-outline btn-sm">ดู</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ตั้งค่าร้าน: เปลี่ยนโลโก้ -->
+  <div class="card">
+    <div class="card-body">
+      <h3 class="fw-700 mb-4" style="font-size:15px;">🖼️ ตั้งค่าโลโก้ร้าน</h3>
+      <div class="d-flex align-center gap-4" style="flex-wrap:wrap;">
+        <!-- แสดงโลโก้ปัจจุบัน -->
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;">โลโก้ปัจจุบัน</div>
+          <% if (shopLogo) { %>
+            <img src="<%= shopLogo %>" alt="Logo" style="width:80px;height:80px;object-fit:cover;border-radius:12px;border:2px solid var(--border);">
+          <% } else { %>
+            <div style="width:80px;height:80px;border-radius:12px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:32px;background:var(--pink-light);">💻</div>
+          <% } %>
+        </div>
+
+        <!-- ฟอร์มอัปโหลด -->
+        <form method="POST" action="/settings/logo" enctype="multipart/form-data" style="flex:1;min-width:240px;">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label class="form-label">เลือกรูปภาพโลโก้ใหม่</label>
+            <input type="file" name="logo" class="form-control" accept="image/*" required
+              onchange="previewLogo(this)" style="padding:8px;">
+          </div>
+          <!-- Preview -->
+          <div id="logoPreview" style="display:none;margin-bottom:12px;">
+            <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">ตัวอย่าง:</div>
+            <img id="previewImg" src="" alt="preview" style="width:80px;height:80px;object-fit:cover;border-radius:12px;border:2px solid var(--primary);">
+          </div>
+          <button type="submit" class="btn btn-primary">📤 อัปโหลดโลโก้</button>
+          <div style="font-size:11px;color:var(--text-light);margin-top:6px;">รองรับ JPG, PNG, GIF — ขนาดไม่เกิน 5MB</div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function previewLogo(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader()
+    reader.onload = e => {
+      document.getElementById('previewImg').src = e.target.result
+      document.getElementById('logoPreview').style.display = 'block'
+    }
+    reader.readAsDataURL(input.files[0])
+  }
+}
+</script>
+
+<%- include('../partials/foot') %>

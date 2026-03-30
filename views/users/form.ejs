@@ -1,0 +1,71 @@
+<%- include('../partials/head', { title: action === 'add' ? 'เพิ่มพนักงาน' : 'แก้ไขพนักงาน' }) %>
+<%- include('../partials/sidebar', { currentPage: 'employees' }) %>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="page-title">
+      <%= action === 'add' ? '➕ เพิ่มพนักงานใหม่' : '✏️ แก้ไขข้อมูลพนักงาน' %>
+    </div>
+    <a href="/users" class="btn btn-outline">← กลับ</a>
+  </div>
+
+  <% if (error) { %>
+    <div class="alert alert-error">⚠️ <%= error %></div>
+  <% } %>
+
+  <div class="card" style="max-width: 540px;">
+    <div class="card-body">
+      <form method="POST" action="/users/<%= action === 'add' ? 'add' : 'edit/' + employee._id %>">
+        <% if (action === 'add') { %>
+          <div class="form-group">
+            <label class="form-label">ชื่อผู้ใช้ *</label>
+            <input type="text" name="username" class="form-control" required placeholder="username">
+          </div>
+        <% } else { %>
+          <div class="form-group">
+            <label class="form-label">ชื่อผู้ใช้</label>
+            <input type="text" class="form-control" value="<%= employee.username %>" disabled style="background:#f8f8fc;">
+          </div>
+        <% } %>
+
+        <div class="form-group">
+          <label class="form-label">ชื่อที่แสดง</label>
+          <input type="text" name="displayName" class="form-control" value="<%= employee ? employee.displayName : '' %>" placeholder="ชื่อ-นามสกุล">
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">อีเมล</label>
+            <input type="email" name="email" class="form-control" value="<%= employee ? employee.email : '' %>" placeholder="email@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">เบอร์โทร</label>
+            <input type="text" name="phone" class="form-control" value="<%= employee ? employee.phone : '' %>" placeholder="08x-xxx-xxxx">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ตำแหน่ง</label>
+          <select name="role" class="form-control">
+            <option value="employee" <%= employee && employee.role === 'employee' ? 'selected' : '' %>>พนักงาน</option>
+            <option value="manager" <%= employee && employee.role === 'manager' ? 'selected' : '' %>>ผู้จัดการ</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label"><%= action === 'add' ? 'รหัสผ่าน *' : 'รหัสผ่านใหม่ (ถ้าไม่เปลี่ยน ให้เว้นว่าง)' %></label>
+          <input type="password" name="password" class="form-control" placeholder="รหัสผ่าน" <%= action === 'add' ? 'required' : '' %>>
+        </div>
+
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn btn-primary">
+            💾 <%= action === 'add' ? 'เพิ่มพนักงาน' : 'บันทึก' %>
+          </button>
+          <a href="/users" class="btn btn-outline">ยกเลิก</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>

@@ -1,0 +1,116 @@
+<%- include('../partials/head', { title: 'แก้ไขโปรไฟล์' }) %>
+<%- include('../partials/sidebar', { currentPage: 'profile' }) %>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="page-title">✏️ แก้ไขโปรไฟล์</div>
+  </div>
+
+  <% if (success) { %>
+    <div class="alert alert-success">✅ <%= success %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-error">⚠️ <%= error %></div>
+  <% } %>
+
+  <div class="card" style="max-width: 600px;">
+    <div class="card-body">
+      <form method="POST" action="/users/profile" enctype="multipart/form-data">
+
+        <!-- รูปโปรไฟล์ -->
+        <div class="text-center mb-6">
+          <% if (userInfo.profileImage) { %>
+            <img src="<%= userInfo.profileImage %>" class="profile-img-preview" id="profilePreview">
+          <% } else { %>
+            <div class="avatar-placeholder" id="avatarPlaceholder"
+              style="width:100px;height:100px;font-size:36px;margin:0 auto 12px;">
+              <%= userInfo.displayName ? userInfo.displayName.charAt(0).toUpperCase() : userInfo.username.charAt(0).toUpperCase() %>
+            </div>
+          <% } %>
+          <div>
+            <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+              📷 เปลี่ยนรูปโปรไฟล์
+              <input type="file" name="profileImage" accept="image/*" style="display:none;" onchange="previewImage(this)">
+            </label>
+            <div style="font-size:11px;color:var(--text-light);margin-top:4px;">ขนาดไม่เกิน 3MB</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- ข้อมูลพื้นฐาน -->
+        <div style="margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px;">ข้อมูลพื้นฐาน</div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">ชื่อผู้ใช้</label>
+          <input type="text" class="form-control" value="@<%= userInfo.username %>" disabled style="background:#f8f8fc;color:var(--text-light);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ชื่อที่แสดง</label>
+          <input type="text" name="displayName" class="form-control" value="<%= userInfo.displayName %>" placeholder="ชื่อ-นามสกุล">
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">อีเมล</label>
+            <input type="email" name="email" class="form-control" value="<%= userInfo.email %>" placeholder="your@email.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">เบอร์โทร</label>
+            <input type="text" name="phone" class="form-control" value="<%= userInfo.phone %>" placeholder="08x-xxx-xxxx">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">ที่อยู่</label>
+          <textarea name="address" class="form-control" placeholder="ที่อยู่สำหรับจัดส่งสินค้า..."><%= userInfo.address %></textarea>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- เปลี่ยนรหัสผ่าน -->
+        <div style="margin-bottom: 12px; font-size: 12px; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px;">เปลี่ยนรหัสผ่าน (ถ้าต้องการ)</div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">รหัสผ่านใหม่</label>
+            <input type="password" name="password" class="form-control" placeholder="ถ้าไม่เปลี่ยน ให้เว้นว่าง">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ยืนยันรหัสผ่านใหม่</label>
+            <input type="password" name="confirmPassword" class="form-control" placeholder="ยืนยันรหัสผ่าน">
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn btn-primary">💾 บันทึกการแก้ไข</button>
+          <a href="<%= user.role === 'customer' ? '/shop' : '/dashboard' %>" class="btn btn-outline">ยกเลิก</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader()
+    reader.onload = function(e) {
+      let preview = document.getElementById('profilePreview')
+      const placeholder = document.getElementById('avatarPlaceholder')
+      if (!preview) {
+        preview = document.createElement('img')
+        preview.id = 'profilePreview'
+        preview.className = 'profile-img-preview'
+        if (placeholder) placeholder.replaceWith(preview)
+        else document.querySelector('.text-center').prepend(preview)
+      }
+      preview.src = e.target.result
+    }
+    reader.readAsDataURL(input.files[0])
+  }
+}
+</script>
+
+<%- include('../partials/foot') %>

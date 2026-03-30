@@ -1,0 +1,134 @@
+<%- include('../partials/head', { title: 'Dashboard' }) %>
+<%- include('../partials/sidebar', { currentPage: 'dashboard' }) %>
+
+<div class="main-content">
+  <div class="page-header">
+    <div class="page-title">📊 Dashboard <span>ยอดขายของฉัน</span></div>
+    <div class="text-muted" style="font-size: 13px;">
+      วันนี้: <%= new Date().toLocaleDateString('th-TH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid-4 mb-6">
+    <div class="stat-card">
+      <div class="stat-icon pink">💰</div>
+      <div>
+        <div class="stat-value">฿<%= myRevenue.toLocaleString() %></div>
+        <div class="stat-label">ยอดขายของฉัน</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">🧾</div>
+      <div>
+        <div class="stat-value"><%= myOrderCount %></div>
+        <div class="stat-label">ออเดอร์ที่ทำ</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">📈</div>
+      <div>
+        <div class="stat-value">฿<%= myOrderCount > 0 ? Math.round(myRevenue / myOrderCount).toLocaleString() : '0' %></div>
+        <div class="stat-label">ค่าเฉลี่ยต่อออเดอร์</div>
+      </div>
+    </div>
+    <div class="stat-card" style="cursor:pointer;" onclick="location.href='/orders'">
+      <div class="stat-icon" style="background:var(--pink-light);color:#e04060;">⏳</div>
+      <div>
+        <div class="stat-value" style="color:#e04060;"><%= pendingCount %></div>
+        <div class="stat-label">รอรับออเดอร์</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shortcut -->
+  <div class="grid-2 mb-6">
+    <a href="/pos" class="card" style="text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div class="card-body" style="display:flex;align-items:center;gap:16px;">
+        <div style="font-size:40px;">🖥️</div>
+        <div>
+          <div style="font-weight:700;font-size:16px;color:var(--text);">POS ขายด่วน</div>
+          <div style="font-size:13px;color:var(--text-light);">เปิดหน้าขายสินค้าและบันทึกยอดขาย</div>
+        </div>
+      </div>
+    </a>
+    <a href="/orders" class="card" style="text-decoration:none;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div class="card-body" style="display:flex;align-items:center;gap:16px;">
+        <div style="font-size:40px;">🧾</div>
+        <div>
+          <div style="font-weight:700;font-size:16px;color:var(--text);">รับออเดอร์ลูกค้า</div>
+          <div style="font-size:13px;color:var(--text-light);">ดูและรับออเดอร์ที่ลูกค้าสั่งมา (<%= pendingCount %> รอรับ)</div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Chart 7 วัน -->
+  <div class="card mb-6">
+    <div class="card-body">
+      <h3 class="fw-700 mb-4" style="font-size:15px;">📈 ยอดขายของฉัน 7 วันล่าสุด</h3>
+      <% const maxSale = Math.max(...last7Days.map(d => d.total), 1) %>
+      <div class="chart-bar-wrap">
+        <% last7Days.forEach(day => { %>
+          <div class="chart-bar-group">
+            <div class="chart-bar" style="height: <%= Math.round((day.total / maxSale) * 100) %>px;"
+              title="฿<%= day.total.toLocaleString() %>"></div>
+            <div class="chart-label"><%= day.date %></div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+
+  <!-- ออเดอร์ล่าสุดของฉัน -->
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-between align-center mb-4">
+        <h3 class="fw-700" style="font-size:15px;">🧾 ออเดอร์ล่าสุดของฉัน</h3>
+        <a href="/orders" class="btn btn-outline btn-sm">ดูทั้งหมด</a>
+      </div>
+      <% if (myOrders.length === 0) { %>
+        <div class="no-records">ยังไม่มีออเดอร์ที่ทำ</div>
+      <% } else { %>
+        <table>
+          <thead>
+            <tr>
+              <th>เลขออเดอร์</th>
+              <th>ลูกค้า</th>
+              <th>วันที่</th>
+              <th>สถานะ</th>
+              <th class="text-right">ยอด</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% myOrders.forEach(order => { %>
+              <tr>
+                <td><strong><%= order.orderNumber %></strong></td>
+                <td><%= order.customerName %></td>
+                <td style="font-size:12px; color: var(--text-light);">
+                  <%= order.createdAt.toLocaleDateString('th-TH') %>
+                </td>
+                <td>
+                  <% if (order.status === 'accepted') { %>
+                    <span class="badge badge-blue">🔄 กำลังทำ</span>
+                  <% } else if (order.status === 'completed') { %>
+                    <span class="badge badge-green">✅ เสร็จ</span>
+                  <% } else { %>
+                    <span class="badge badge-gray">❌ ยกเลิก</span>
+                  <% } %>
+                </td>
+                <td class="text-right price fw-700">฿<%= order.totalAmount.toLocaleString() %></td>
+                <td>
+                  <a href="/orders/receipt/<%= order._id %>" class="btn btn-outline btn-sm">ดู</a>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/foot') %>
