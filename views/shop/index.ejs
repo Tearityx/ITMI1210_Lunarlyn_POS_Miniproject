@@ -13,7 +13,7 @@
       </div>
     <% } %>
     <div>
-      <% if (shopLogo) { %><img src="<%= shopLogo %>" style="height:36px;border-radius:6px;" alt="logo"><% } else { %><h2>💻 Lunarlyn IT</h2><% } %>
+      <img src="<%= shopLogo %>" style="height:36px;border-radius:6px;" alt="logo">
       <div style="font-size:11px;color:var(--text);">สวัสดี, <%= user ? (user.displayName || user.username) : '' %></div>
     </div>
   </div>
